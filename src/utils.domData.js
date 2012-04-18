@@ -25,6 +25,10 @@ ko.utils.domData = new (function () {
                     return undefined;
                 dataStoreKey = node[dataStoreKeyExpandoPropertyName] = "ko" + uniqueId++;
                 dataStore[dataStoreKey] = {};
+            // The below is a change by Matt Feury to properly handle empty datastores.
+            // Not a part of the vanilla KnockoutJS.
+            } else if (typeof dataStore[dataStoreKey] === 'undefined') {
+                dataStore[dataStoreKey] = {};
             }
             return dataStore[dataStoreKey];
         },

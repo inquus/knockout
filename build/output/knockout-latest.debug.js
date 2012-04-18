@@ -515,6 +515,10 @@ ko.utils.domData = new (function () {
                     return undefined;
                 dataStoreKey = node[dataStoreKeyExpandoPropertyName] = "ko" + uniqueId++;
                 dataStore[dataStoreKey] = {};
+            // The below is a change by Matt Feury to properly handle empty datastores.
+            // Not a part of the vanilla KnockoutJS.
+            } else if (typeof dataStore[dataStoreKey] === 'undefined') {
+                dataStore[dataStoreKey] = {};
             }
             return dataStore[dataStoreKey];
         },
@@ -665,7 +669,10 @@ ko.exportSymbol('utils.domNodeDisposal.removeDisposeCallback', ko.utils.domNodeD
     }
 
     function jQueryHtmlParse(html) {
-        var elems = jQuery['clean']([html]);
+        // $shivIe used to be a jQuery.clean, but IE8 and below barfs on HTML5 elements
+        // so we use innerShiv to help us out here.
+        // by Matt Feury (11/2/2011), not from original Knockout
+        var elems = $shivIe(html);
 
         // As of jQuery 1.7.1, jQuery parses the HTML by appending it to some dummy parent nodes held in an in-memory document fragment.
         // Unfortunately, it never clears the dummy parent nodes from the document fragment, so it leaks memory over time.
@@ -2520,6 +2527,12 @@ ko.bindingHandlers['attr'] = {
             if (typeof attrName == "string") {
                 var attrValue = ko.utils.unwrapObservable(value[attrName]);
 
+                // Remove old src attribute so it doesn't show the templated image
+                // This is a fix for Firefox which waits until the load is complete before displaying
+                // The following is a fix added by Matt Feury and is not a part of vanilla KnockoutJS.
+                if (attrName === 'src')
+                  element.removeAttribute(attrName)
+
                 // To cover cases like "attr: { checked:someProp }", we want to remove the attribute entirely
                 // when someProp is a "no value"-like value (strictly null, false, or undefined)
                 // (because the absence of the "checked" attr is how to mark an element as not checked, etc.)
@@ -2784,8 +2797,14 @@ ko.templateRewriting = (function () {
 
         applyMemoizedBindingsToNextSibling: function (bindings) {
             return ko.memoization.memoize(function (domNode, bindingContext) {
-                if (domNode.nextSibling)
-                    ko.applyBindingsToNode(domNode.nextSibling, bindings, bindingContext);
+                // Look for the next NON-TEXT sibling. This is an IE-specific problem.
+                // The following is a change added by Matt Feury. Not a part of the vanilla KnockoutJS.
+                var nextSibling = domNode.nextSibling;
+                while (nextSibling && nextSibling.nodeType == 3)
+                  nextSibling = nextSibling.nextSibling;
+
+                if (nextSibling)
+                    ko.applyBindingsToNode(nextSibling, bindings, bindingContext);
             });
         }
     }

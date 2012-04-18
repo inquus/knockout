@@ -53,8 +53,14 @@ ko.templateRewriting = (function () {
 
         applyMemoizedBindingsToNextSibling: function (bindings) {
             return ko.memoization.memoize(function (domNode, bindingContext) {
-                if (domNode.nextSibling)
-                    ko.applyBindingsToNode(domNode.nextSibling, bindings, bindingContext);
+                // Look for the next NON-TEXT sibling. This is an IE-specific problem.
+                // The following is a change added by Matt Feury. Not a part of the vanilla KnockoutJS.
+                var nextSibling = domNode.nextSibling;
+                while (nextSibling && nextSibling.nodeType == 3)
+                  nextSibling = nextSibling.nextSibling;
+
+                if (nextSibling)
+                    ko.applyBindingsToNode(nextSibling, bindings, bindingContext);
             });
         }
     }

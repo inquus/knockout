@@ -426,6 +426,12 @@ ko.bindingHandlers['attr'] = {
             if (typeof attrName == "string") {
                 var attrValue = ko.utils.unwrapObservable(value[attrName]);
 
+                // Remove old src attribute so it doesn't show the templated image
+                // This is a fix for Firefox which waits until the load is complete before displaying
+                // The following is a fix added by Matt Feury and is not a part of vanilla KnockoutJS.
+                if (attrName === 'src')
+                  element.removeAttribute(attrName)
+
                 // To cover cases like "attr: { checked:someProp }", we want to remove the attribute entirely
                 // when someProp is a "no value"-like value (strictly null, false, or undefined)
                 // (because the absence of the "checked" attr is how to mark an element as not checked, etc.)

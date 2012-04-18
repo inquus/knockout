@@ -36,7 +36,10 @@
     }
 
     function jQueryHtmlParse(html) {
-        var elems = jQuery['clean']([html]);
+        // $shivIe used to be a jQuery.clean, but IE8 and below barfs on HTML5 elements
+        // so we use innerShiv to help us out here.
+        // by Matt Feury (11/2/2011), not from original Knockout
+        var elems = $shivIe(html);
 
         // As of jQuery 1.7.1, jQuery parses the HTML by appending it to some dummy parent nodes held in an in-memory document fragment.
         // Unfortunately, it never clears the dummy parent nodes from the document fragment, so it leaks memory over time.
