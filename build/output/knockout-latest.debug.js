@@ -2127,9 +2127,7 @@ ko.bindingHandlers['event'] = {
                 if (typeof eventName == "string") {
                     ko.utils.registerEventHandler(element, eventName, function (event) {
                         var handlerReturnValue;
-                        var handlerFunction = valueAccessor()[eventName];
-                        if (ko.isObservable(handlerFunction))
-                            handlerFunction = handlerFunction()
+                        var handlerFunction = ko.utils.unwrapObservable(valueAccessor()[eventName]);
                         if (!handlerFunction)
                             return;
                         var allBindings = allBindingsAccessor();
